@@ -25,7 +25,7 @@ namespace Papier
             // Skip special names
             if (type.Name.StartsWith("<") && type.Name.EndsWith(">"))
             {
-                Logger.Warn($"!! Skipping {type.Name}");
+                Logger.Warn($"Skipping {type.Name}");
                 return;
             }
             
