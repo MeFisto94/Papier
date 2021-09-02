@@ -149,9 +149,15 @@ namespace Papier
                 Logger.Error($"Could not execute {pInfo.Arguments}");
                 return imp.ToList();
             }
-
-            // TODO: Exit Code?
+            
             p.WaitForExit();
+
+            if (p.ExitCode != 0)
+            {
+                Logger.Error($"Could not execute {pInfo.Arguments}: Do you have WSL installed?");
+                Logger.Error($"Standard-Error: {string.Join('\n', Program.ReadLines(p.StandardError))}");
+                return imp.ToList();
+            }
 
             var len = "diff --git a/".Length;
             var diffLines = Program.ReadLines(p.StandardOutput)
