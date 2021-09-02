@@ -3,21 +3,18 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using CommandLine;
 using ICSharpCode.Decompiler;
 using ICSharpCode.Decompiler.CSharp;
 using ICSharpCode.Decompiler.Metadata;
-using ILRepacking;
-using LibGit2Sharp;
-using Microsoft.Build.Construction;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Mono.Cecil;
+using NLog;
+using NLog.Config;
 using NLog.Targets;
 using static NLog.LogLevel;
-using AssemblyNameReference = Mono.Cecil.AssemblyNameReference;
 using LanguageVersion = ICSharpCode.Decompiler.CSharp.LanguageVersion;
 
 namespace Papier
@@ -229,7 +226,7 @@ namespace Papier
 
         private static void SetupLogging(ProgramOptions options)
         {
-            var config = new NLog.Config.LoggingConfiguration();
+            var config = new LoggingConfiguration();
 
             // Targets where to log to: File and Console
             Target target = options.DisableColor ? new ConsoleTarget("logconsole") : 
@@ -244,10 +241,10 @@ namespace Papier
             }
 
             // Rules for mapping loggers to targets            
-            config.AddRule(options.Verbose ? NLog.LogLevel.Debug : Info, Fatal, target);
+            config.AddRule(options.Verbose ? LogLevel.Debug : Info, Fatal, target);
 
             // Apply config           
-            NLog.LogManager.Configuration = config;
+            LogManager.Configuration = config;
         }
 
         private static bool BuildWorkingDir(IEnumerable<string> patchedFiles, AssemblyDefinition assembly, string assemblyFile,
