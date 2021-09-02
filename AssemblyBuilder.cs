@@ -143,7 +143,7 @@ namespace Papier
             rpo.LogVerbose = false;
             rpo.RepackDropAttribute = "PapierStubAttribute";
             rpo.CopyAttributes = true;
-            rpo.LineIndexation = true;
+            rpo.LineIndexation = o.EnableLineIndexing;
 
             foreach (var s in sourceSet)
             {

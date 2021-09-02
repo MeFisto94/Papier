@@ -31,5 +31,9 @@ namespace Papier
         
         [Option("disable-color", Default = false, HelpText = "Disable colors in the log output.")]
         public bool DisableColor { get; set; }
+        
+        [Option("enable-line-indexer", Default = false, HelpText = "Enable ILRepacks IKVM based line indexer." +
+                                                                   " Currently not supported by the CI")]
+        public bool EnableLineIndexing { get; set; }
     }
 }
