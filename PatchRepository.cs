@@ -159,6 +159,16 @@ namespace Papier
                 .Select(x =>
             {
                 var idx = x.IndexOf(' ', len);
+                if (idx == -1)
+                {
+                    throw new ArgumentException($"Error when parsing patch line {x}: Could not find the space");
+                }
+                
+                if (idx - len - 3 <= 0)
+                {
+                    throw new ArgumentException($"Error when parsing patch line {x}: idx={idx}, len={len}");
+                }
+                
                 return x.Substring(len, idx - len - 3); // -3: ".cs"
             });
 
