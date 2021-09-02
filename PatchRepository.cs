@@ -131,18 +131,18 @@ namespace Papier
             Directory.CreateDirectory(PatchPath);
         }
         
-        public List<string> GatherPatchedFiles(string assemblyName)
+        public List<string> GatherPatchedFiles()
         {
-            // TODO: Check the folders for patches etc.
-            var imp = File.ReadAllLines(Path.Combine("work", "imports.txt"))
+            var imp = File.ReadAllLines(Path.Combine(PatchPath, "imports.txt"))
                 .Select(x => x.Trim())
                 .Where(x => !x.StartsWith("#"));
-                // TODO: Filter by assemblyName: "assemblyName TypeName"
             
-            var pInfo = new ProcessStartInfo("bash","-c \"cat *.patch | grep 'diff --git a/'\"");
-            pInfo.WorkingDirectory = PatchPath;
-            pInfo.RedirectStandardOutput = true;
-        
+            var pInfo = new ProcessStartInfo("bash","-c \"cat *.patch | grep 'diff --git a/'\"")
+             {
+                 WorkingDirectory = PatchPath,
+                 RedirectStandardOutput = true
+             };
+
             var p = Process.Start(pInfo);
             if (p == null)
             {
@@ -154,7 +154,9 @@ namespace Papier
             p.WaitForExit();
 
             var len = "diff --git a/".Length;
-            var diffLines = Program.ReadLines(p.StandardOutput).Select(x =>
+            var diffLines = Program.ReadLines(p.StandardOutput)
+                .Where(x => !x.StartsWith("diff --git a/null")) // Skip freshly created files.
+                .Select(x =>
             {
                 var idx = x.IndexOf(' ', len);
                 return x.Substring(len, idx - len - 3); // -3: ".cs"

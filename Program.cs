@@ -112,7 +112,7 @@ namespace Papier
                                 Path.Combine("patches", assemblyNameWithoutExt));
 
                             patchRepo.CleanRepo();
-                            var patchedFiles = patchRepo.GatherPatchedFiles(assemblyFile);
+                            var patchedFiles = patchRepo.GatherPatchedFiles();
                             
                             // TODO: MainModule instead of Modules? Here we could easily support multiple modules...
                             decompiler.DecompileTypes(assembly.Modules.SelectMany(x => x.Types), 
@@ -197,7 +197,7 @@ namespace Papier
                             var patchRepo = new PatchRepository(Path.Combine("repos", moduleName),
                                 Path.Combine("patches", moduleName));
 
-                            var patchedFiles = patchRepo.GatherPatchedFiles(assemblyFile);
+                            var patchedFiles = patchRepo.GatherPatchedFiles();
                             BuildWorkingDir(patchedFiles, assembly, assemblyFile, 
                                 patchRepo.RepositoryPath, buildData,  o, assemblyPath, ar);
                         });
