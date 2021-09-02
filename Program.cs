@@ -189,7 +189,7 @@ namespace Papier
                                 new ReaderParameters { AssemblyResolver = ar })))
                             .ToList();
 
-                        assemblyList.ForEach(tuple =>
+                        var hadErrors = assemblyList.Select(tuple =>
                         {
                             var (assemblyFile, assembly) = tuple;
                             var assemblyPath = Path.Combine(buildData, assemblyFile);
@@ -198,9 +198,15 @@ namespace Papier
                                 Path.Combine("patches", moduleName));
 
                             var patchedFiles = patchRepo.GatherPatchedFiles();
-                            BuildWorkingDir(patchedFiles, assembly, assemblyFile, 
+                            return BuildWorkingDir(patchedFiles, assembly, assemblyFile, 
                                 patchRepo.RepositoryPath, buildData,  o, assemblyPath, ar);
-                        });
+                        }).Any(x => !x);
+
+                        if (hadErrors)
+                        {
+                            Console.Error.WriteLine("Compilation failed for at least one assembly. Check the logs");
+                            Environment.Exit(-1);
+                        }
                     }
                     break;
                 }
