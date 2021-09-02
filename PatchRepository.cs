@@ -140,7 +140,8 @@ namespace Papier
             var pInfo = new ProcessStartInfo("bash","-c \"cat *.patch | grep 'diff --git a/'\"")
              {
                  WorkingDirectory = PatchPath,
-                 RedirectStandardOutput = true
+                 RedirectStandardOutput = true,
+                 RedirectStandardError = true
              };
 
             var p = Process.Start(pInfo);
