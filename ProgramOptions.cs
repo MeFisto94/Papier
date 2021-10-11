@@ -35,5 +35,8 @@ namespace Papier
         [Option("enable-line-indexer", Default = false, HelpText = "Enable ILRepacks IKVM based line indexer." +
                                                                    " Currently not supported by the CI")]
         public bool EnableLineIndexing { get; set; }
+        
+        [Value(1, MetaName = "Assembly Wildcard", MetaValue = "*")]
+        public string AssemblyWildcard { get; set; }
     }
 }

@@ -42,7 +42,21 @@ namespace Papier
                         var ar = new DefaultAssemblyResolver();
                         ar.AddSearchDirectory(buildData);
 
-                        var assemblyStringList = new List<string> { "Assembly-CSharp.dll" };
+                        if (o.AssemblyWildcard == null)
+                        {
+                            o.AssemblyWildcard = "Assembly-CSharp";
+                            Console.WriteLine("Using Assembly-CSharp as the wildcard");
+                        }
+                        
+                        var assemblyStringList = Directory.EnumerateFiles(buildData, $"{o.AssemblyWildcard}.dll")
+                            .Select(Path.GetFileName).ToList();
+
+                        if (assemblyStringList.Count == 0)
+                        {
+                            Console.Error.WriteLine("No files match the wildcard");
+                            Environment.Exit(-1);
+                        }
+                        
                         foreach (var s in assemblyStringList.Where(x => !File.Exists(Path.Combine(buildData, x))))
                         {
                             Console.Error.WriteLine($"Missing {s} in work/BuildData!");
@@ -82,7 +96,7 @@ namespace Papier
                                 decompiler.DecompileTypes(assembly.Modules.SelectMany(x => x.Types), slnPath);
                                 var projB = new ProjectBuilder
                                 {
-                                    ProjectFolder = Path.Combine("work", "sln"),
+                                    ProjectFolder = Path.Combine("work", "sln", $"{assemblyNameWithoutExt}-Full"),
                                     ProjectName = $"{assemblyNameWithoutExt}-Full",
                                     DebugBuild = true
                                 };
@@ -92,16 +106,6 @@ namespace Papier
                                     projB.WithReference(Path.GetFullPath(refPath));
                                 }
                                 projB.Build();
-
-                                var solB = new SolutionBuilder
-                                {
-                                    SolutionFolder = Path.Combine("work", "sln"),
-                                    SolutionName = "DecompiledModules",
-                                    Projects = new List<string>{$"{assemblyNameWithoutExt}-Full"}
-                                };
-                                solB.Build();
-                                
-                                Console.WriteLine("Done creating a visual studio solution at work/sln");
                                 return;
                             }
                             
@@ -135,7 +139,7 @@ namespace Papier
                             Console.WriteLine("Writing the final csproj");
                             var pb = new ProjectBuilder
                             {
-                                ProjectFolder = Path.Combine(buildData, "repos"),
+                                ProjectFolder = patchRepo.RepositoryPath,
                                 ProjectName = "Assembly-CSharp-Patches",
                                 DebugBuild = true
                             };
@@ -147,6 +151,21 @@ namespace Papier
                             
                             pb.Build();
                         });
+
+                        if (!apply)
+                        {
+                            var solB = new SolutionBuilder
+                            {
+                                SolutionFolder = Path.Combine("work", "sln"),
+                                SolutionName = "DecompiledModules",
+                                Projects = assemblyList
+                                    .Select(x => $"{Path.GetFileNameWithoutExtension(x.assemblyName)}-Full")
+                                    .ToList()
+                            };
+                            solB.Build();
+
+                            Console.WriteLine("Done creating a visual studio solution at work/sln");
+                        }
                     }
                     break;
 
