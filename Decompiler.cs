@@ -28,6 +28,12 @@ namespace Papier
                 Logger.Warn($"Skipping {type.Name}");
                 return;
             }
+
+            if (type.Name.Contains("<") || type.Name.Contains(">") || type.Name.Contains("`"))
+            {
+                Logger.Warn($"Skipping {type.Name}, because it's not a valid filename (TODO: string replacements)");
+                return;
+            }
             
             // TODO: Remove´1  suffix from generics, but that probably fails at later lookups though.
             if (skipExisting && File.Exists(Path.Combine(outputSourceDirectory, $"{type.Name}.cs")))
