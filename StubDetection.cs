@@ -3,16 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using NLog;
 
 namespace Papier
 {
     public static class StubDetection
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger(); 
         public static bool FindStubsThatAreCalledFromTheSourceSet(AssemblyDefinition assembly,
             IEnumerable<string> sourceSet, ref Dictionary<TypeDefinition, HashSet<IMemberDefinition>> stubbedTypes)
         {
             var hadStubs = false;
-            var sourceTypes = sourceSet.Select(source => assembly.MainModule.GetType(source)).ToList();
+            var sourceTypes = sourceSet.Select(source =>
+            {
+                var ret = assembly.MainModule.GetType(source);
+                if (ret == null)
+                {
+                    Logger.Error($"Could not resolve Type {source}!");
+                    Environment.Exit(-1);
+                }
+
+                return ret;
+            }).ToList();
             foreach (var type in sourceTypes)
             {
                 var methodsToStub = new HashSet<MethodDefinition>();

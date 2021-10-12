@@ -20,7 +20,6 @@ namespace Papier
             References = new Dictionary<string, string>();
         }
 
-
         public ProjectBuilder WithReference(string referenceName, string referencePath)
         {
             References.Add(referenceName, referencePath);
@@ -63,7 +62,7 @@ namespace Papier
             }
 
             root.AddImport(@"$(MSBuildToolsPath)\Microsoft.CSharp.targets");
-            root.Save(Path.Combine(ProjectFolder, ProjectName, $"{ProjectName}.csproj"));
+            root.Save(Path.Combine(ProjectFolder, $"{ProjectName}.csproj"));
             _built = true;
         }
 

@@ -35,15 +35,15 @@ namespace Papier
                 return;
             }
             
-            // TODO: Remove´1  suffix from generics, but that probably fails at later lookups though.
-            if (skipExisting && File.Exists(Path.Combine(outputSourceDirectory, $"{type.Name}.cs")))
+            // TODO: Remove´1 suffix from generics, but that probably fails at later lookups though.
+            if (skipExisting && File.Exists(Path.Combine(outputSourceDirectory, $"{type.FullName}.cs")))
             {
                 //Console.WriteLine($"UP-TO-DATE {type.Name}.cs");
                 return;
             }
 
-            Logger.Info($"Decompiling {type.Name}.cs");
-            await File.WriteAllTextAsync(Path.Combine(outputSourceDirectory, $"{type.Name}.cs"), 
+            Logger.Info($"Decompiling {type.FullName}.cs");
+            await File.WriteAllTextAsync(Path.Combine(outputSourceDirectory, $"{type.FullName}.cs"), 
                 _decompiler.DecompileTypeAsString(new FullTypeName(type.FullName)));
         }
 
