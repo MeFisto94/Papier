@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net5.0</TargetFramework>
+        <!-- Prevent a lot of folders with localized dlls -->
+        <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+        <Title>Papier .net patching tool</Title>
+        <Authors>MeFisto94</Authors>
+        <Company>MeFisto94</Company>
+        <!-- Compile a single .exe that contains all the DLLs -->
+        <!--<PublishSingleFile>true</PublishSingleFile>
+        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+        <PublishTrimmed>true</PublishTrimmed>
+        <PublishReadyToRun>true</PublishReadyToRun>-->
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="CommandLineParser" Version="2.8.0" />
+      <PackageReference Include="deltaq" Version="1.2.0" />
+      <PackageReference Include="ICSharpCode.Decompiler" Version="7.1.0.6543" />
+      <PackageReference Include="IKVM.Runtime" Version="7.2.4630.5" />
+      <PackageReference Include="ILRepack.Lib" Version="2.0.18" />
+      <PackageReference Include="LibGit2Sharp" Version="0.26.2" />
+      <PackageReference Include="Microsoft.Build" Version="16.10.0" />
+      <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.0-2.final" />
+      <PackageReference Include="Mono.Cecil" Version="0.11.4" />
+      <PackageReference Include="NLog" Version="4.7.10" />
+      <PackageReference Include="YamlDotNet" Version="11.2.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ILRepackMerger\ILRepackMerger.csproj" />
+    </ItemGroup>
+
+</Project>

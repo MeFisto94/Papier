@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="ILRepack.Lib" Version="2.0.18" />
+      <PackageReference Include="Mono.Cecil" Version="0.11.4" />
+    </ItemGroup>
+
+</Project>
