@@ -16,4 +16,4 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore --project Papier/Papier.csproj
+      run: dotnet build --no-restore Papier/Papier.csproj
