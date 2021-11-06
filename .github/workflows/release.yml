@@ -1,0 +1,28 @@
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version'
+        required: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+    - name: Restore dependencies
+      run: dotnet restore -r win-x64
+    - name: Publish
+      run: dotnet publish --no-restore -c Release -p:PublishSingleFile=true -p:PublishTrimmed=true -r win-x64 Papier/Papier.csproj
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+      with:
+        tag_name: v${{ github.event.inputs.version }}
+        name: Release ${{ github.event.inputs.version }}
+        files: "Papier/bin/Release/*"
