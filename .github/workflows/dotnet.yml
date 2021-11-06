@@ -20,4 +20,4 @@ jobs:
     - name: Publish
       run: dotnet publish --no-restore -c Release -p:PublishSingleFile=true -p:PublishTrimmed=true -r win-x64 Papier/Papier.csproj
     - name: Debug
-      run: ls -lsh Papier/bin/Release/*
+      run: ls -lsh Papier/bin/Release/win-x64/*
