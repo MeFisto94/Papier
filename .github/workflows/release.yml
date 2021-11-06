@@ -26,4 +26,4 @@ jobs:
       with:
         tag_name: v${{ github.event.inputs.version }}
         name: Release ${{ github.event.inputs.version }}
-        files: "Papier/bin/Release/win-x64"
+        files: "Papier/bin/Release/net5.0/win-x64/publish/"
