@@ -1,3 +1,4 @@
+name: Release
 on:
   workflow_dispatch:
     inputs:
@@ -25,4 +26,4 @@ jobs:
       with:
         tag_name: v${{ github.event.inputs.version }}
         name: Release ${{ github.event.inputs.version }}
-        files: "Papier/bin/Release/*"
+        files: "Papier/bin/Release/win-x64"
