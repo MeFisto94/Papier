@@ -29,21 +29,28 @@ namespace Papier
                 return;
             }
 
-            if (type.Name.Contains("<") || type.Name.Contains(">") || type.Name.Contains("`"))
+            if (type.Name.Contains("<") || type.Name.Contains(">"))
             {
                 Logger.Warn($"Skipping {type.Name}, because it's not a valid filename (TODO: string replacements)");
                 return;
             }
+
+            var typeFullFileName = $"{type.FullName}.cs";
+
+            if (type.Name.Contains("`"))
+            {
+                typeFullFileName = typeFullFileName.Replace('`', '_');
+            }
             
             // TODO: Remove´1 suffix from generics, but that probably fails at later lookups though.
-            if (skipExisting && File.Exists(Path.Combine(outputSourceDirectory, $"{type.FullName}.cs")))
+            if (skipExisting && File.Exists(Path.Combine(outputSourceDirectory, typeFullFileName)))
             {
                 //Console.WriteLine($"UP-TO-DATE {type.Name}.cs");
                 return;
             }
-
-            Logger.Info($"Decompiling {type.FullName}.cs");
-            await File.WriteAllTextAsync(Path.Combine(outputSourceDirectory, $"{type.FullName}.cs"), 
+            
+            Logger.Info($"Decompiling {typeFullFileName}");
+            await File.WriteAllTextAsync(Path.Combine(outputSourceDirectory, typeFullFileName), 
                 _decompiler.DecompileTypeAsString(new FullTypeName(type.FullName)));
         }
 
