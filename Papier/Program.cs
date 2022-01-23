@@ -104,7 +104,10 @@ namespace Papier
 
                                 foreach (var refPath in Directory.GetFiles(buildData))
                                 {
-                                    projB.WithReference(Path.GetFullPath(refPath));
+                                    if (!refPath.EndsWith(assemblyFile))
+                                    {
+                                        projB.WithReference(Path.GetFullPath(refPath));
+                                    }
                                 }
                                 projB.Build();
                                 return;
