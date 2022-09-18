@@ -18,11 +18,10 @@ namespace Papier
     /// As a workaround, we compile the changed classes together with a lot of stub classes (stub because that is more
     /// reliable than using a decompiler and have full blown methods, in fact the method bodies are irrelevant anyway).
     /// </summary>
-    // TODO: Support for generics.
     public class StubGenerator
     {
         // 4 spaces ident, hard coded :D
-        private const string ident = "    ";
+        private const string Ident = "    ";
         public static async Task CreateStringStub(Stream stringStream, TypeDefinition stubType, HashSet<IMemberDefinition> stubDefinitions)
         {
             await using (var sw = new StreamWriter(stringStream))
@@ -54,7 +53,7 @@ namespace Papier
 
                 if (stubType.BaseType != null)
                 {
-                    subClasses += NamespacedType(stubType.BaseType.Namespace, stubType.BaseType.Name);
+                    subClasses += NamespacedType(stubType.BaseType);
                     // TODO: Go down type hierarchy and take abstract methods.
                 }
 
@@ -63,7 +62,7 @@ namespace Papier
                     foreach (var iface in stubType.Interfaces)
                     {
                         var itype = iface.InterfaceType;
-                        subClasses += $", {NamespacedType(itype.Namespace, itype.Name)}";
+                        subClasses += $", {NamespacedType(itype)}";
                         
                         // TODO: Ignore default method impls and validate that.
                         requiredMethods.AddRange(itype.Resolve().Methods.Where(m => !m.IsStatic && !m.HasBody));
@@ -73,36 +72,36 @@ namespace Papier
                 await sw.WriteLineAsync("[PapierStub]");
                 await sw.WriteLineAsync($"{modifier}class {stubType.Name}{subClasses} {{");
 
-                await sw.WriteLineAsync($"{ident}// FIELDS START");
+                await sw.WriteLineAsync($"{Ident}// FIELDS START");
                 foreach (var fd in stubDefinitions.Where(x => x is FieldDefinition).Cast<FieldDefinition>())
                 {
                     await WriteField(sw, fd);
                 }
-                await sw.WriteLineAsync($"{ident}// FIELDS END");
+                await sw.WriteLineAsync($"{Ident}// FIELDS END");
                 await sw.WriteLineAsync();
                 
-                await sw.WriteLineAsync($"{ident}// PROPS START");
+                await sw.WriteLineAsync($"{Ident}// PROPS START");
                 foreach (var pd in stubDefinitions.Where(x => x is PropertyDefinition).Cast<PropertyDefinition>())
                 {
                     await WriteProp(sw, pd);
                 }
-                await sw.WriteLineAsync($"{ident}// PROPS END");
+                await sw.WriteLineAsync($"{Ident}// PROPS END");
                 await sw.WriteLineAsync();
                 
-                await sw.WriteLineAsync($"{ident}// METHODS START");
+                await sw.WriteLineAsync($"{Ident}// METHODS START");
                 foreach (var md in stubDefinitions.Where(x => x is MethodDefinition).Cast<MethodDefinition>())
                 {
                     await WriteMethod(sw, md);
                 }
-                await sw.WriteLineAsync($"{ident}// METHODS END");
+                await sw.WriteLineAsync($"{Ident}// METHODS END");
                 await sw.WriteLineAsync();
                 
-                await sw.WriteLineAsync($"{ident}// OVERRIDDEN METHODS START");
+                await sw.WriteLineAsync($"{Ident}// OVERRIDDEN METHODS START");
                 foreach (var md in requiredMethods)
                 {
                     await WriteMethod(sw, md);
                 }
-                await sw.WriteLineAsync($"{ident}// OVERRIDDEN METHODS END");
+                await sw.WriteLineAsync($"{Ident}// OVERRIDDEN METHODS END");
                 await sw.WriteLineAsync();
                 
                 await sw.WriteLineAsync($"}} // class {stubType.Name}");
@@ -114,21 +113,26 @@ namespace Papier
             } 
         }
 
-        private static string NamespacedType(string @namespace, string name)
+        private static string NamespacedType(TypeReference type)
         {
-            if ("System".Equals(@namespace) && "Void".Equals(name))
+            if (type.Namespace == "System" && type.Name == "Void")
             {
-                // Can't use System.Void for some reason.
-                // In general a primitive conversion would be nice-to-have, but I don't know about the implications
                 return "void";
             }
             
-            return string.IsNullOrEmpty(@namespace) ? name : $"{@namespace}.{name}";
+            return 
+                (type.IsByReference ? "ref " : "") +
+                type.FullName
+                // TODO: this doesn't consider generic with multiple types. For now we just hard code a few...
+                .Replace("`1", "")
+                .Replace("`2", "")
+                .Replace("`3", "")
+                .Replace("&", "");
         }
 
         private static async Task WriteField(TextWriter sw, FieldDefinition fd)
         {
-            await sw.WriteLineAsync($"{ident}{GetModifiers(fd)}{NamespacedType(fd.FieldType.Namespace, fd.FieldType.Name)} {fd.Name};");
+            await sw.WriteLineAsync($"{Ident}{GetModifiers(fd)}{NamespacedType(fd.FieldType)} {fd.Name};");
         }
         
         private static async Task WriteProp(TextWriter sw, PropertyDefinition pd)
@@ -171,7 +175,7 @@ namespace Papier
                 }
             }
             
-            await sw.WriteLineAsync($"{ident}{prefix}{NamespacedType(pd.PropertyType.Namespace, pd.PropertyType.Name)} " +
+            await sw.WriteLineAsync($"{Ident}{prefix}{NamespacedType(pd.PropertyType)} " +
                                     $"{pd.Name} {{ {(infix_get ? GetModifiers(pd.GetMethod) : "")}get; " +
                                     $"{(infix_set ? GetModifiers(pd.SetMethod) : "")}set;}}");
         }
@@ -183,7 +187,7 @@ namespace Papier
             {
                 foreach (var pd in md.Parameters)
                 {
-                    parms += $"{GetModifiers(pd)}{NamespacedType(pd.ParameterType.Namespace, pd.ParameterType.Name)} {pd.Name}, ";
+                    parms += $"{GetModifiers(pd)}{NamespacedType(pd.ParameterType)} {pd.Name}, ";
                 }
 
                 // This condition is in theory redundant...
@@ -245,13 +249,13 @@ namespace Papier
                 }
                 
                 await sw.WriteLineAsync(
-                    $"{ident}{GetModifiers(md)}{md.DeclaringType.Name}({parms}){@base} {{ }}");
+                    $"{Ident}{GetModifiers(md)}{md.DeclaringType.Name}({parms}){@base} {{ }}");
             }
             else
             {
                 var returnStatement = GetReturnStatement(md.ReturnType);
                 await sw.WriteLineAsync(
-                    $"{ident}{GetModifiers(md)}{NamespacedType(md.ReturnType.Namespace, md.ReturnType.Name)} {md.Name}({parms}) {{ {returnStatement}}}");
+                    $"{Ident}{GetModifiers(md)}{NamespacedType(md.ReturnType)} {md.Name}({parms}) {{ {returnStatement}}}");
             }
         }
 
