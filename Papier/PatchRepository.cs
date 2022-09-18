@@ -79,7 +79,18 @@ namespace Papier
             // git format-patch ^$(git rev-list HEAD --reverse | head -n 1) unfortunately only works in a real bash
             // but also we can't manually call rev-list and then pipe them to format-patch, because windows has a limit
             // for the command line length.
-            var pInfo = new ProcessStartInfo("bash", $"-c \"git am -3 {path}/*.patch\"");
+            
+            // Three Way Merge: Unfortunately we can't use 3way merges, because we don't have any history of the target
+            // application (or we don't want to generate multiple decompilation commits and especially! require the user
+            // to supply multiple versions of the whole application).
+            // Sadly, that complicates conflicts a bit, since you don't get the regular git mergetool inline conflicts,
+            // in fact there are no conflicts, just a patch that didn't apply and you need to manually find out which
+            // context doesn't match 100% (or use wiggle)
+            // --whitespace=fix ignores and fixes whitespace problems coming from patches, leading to cleaner patches
+            // after one round-trip. For some reason I had issues with patches having weird whitespaces at EOL, that
+            // make patches troublesome to apply.
+            
+            var pInfo = new ProcessStartInfo("bash", $"-c \"git am --whitespace=fix {path}/*.patch\"");
             pInfo.WorkingDirectory = RepositoryPath;
             
             var p = Process.Start(pInfo);
@@ -104,7 +115,7 @@ namespace Papier
             // but also we can't manually call rev-list and then pipe them to format-patch, because windows has a limit
             // for the command line length.
             var pInfo = new ProcessStartInfo("bash",
-                $"-c \"git format-patch -o {path} -N ^$(git rev-list HEAD --reverse | head -n 1)\"");
+                $"-c \"git format-patch --zero-commit --full-index --no-signature --no-stat -o {path} -N ^$(git rev-list HEAD --reverse | head -n 1)\"");
             pInfo.WorkingDirectory = RepositoryPath;
             
             var p = Process.Start(pInfo);
