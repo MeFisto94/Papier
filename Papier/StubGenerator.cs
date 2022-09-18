@@ -72,36 +72,36 @@ namespace Papier
                 await sw.WriteLineAsync("[PapierStub]");
                 await sw.WriteLineAsync($"{modifier}class {stubType.Name}{subClasses} {{");
 
-                await sw.WriteLineAsync($"{Ident}// FIELDS START");
+                await sw.WriteLineAsync($"{Ident}#region Fields");
                 foreach (var fd in stubDefinitions.Where(x => x is FieldDefinition).Cast<FieldDefinition>())
                 {
                     await WriteField(sw, fd);
                 }
-                await sw.WriteLineAsync($"{Ident}// FIELDS END");
+                await sw.WriteLineAsync($"{Ident}#endregion");
                 await sw.WriteLineAsync();
                 
-                await sw.WriteLineAsync($"{Ident}// PROPS START");
+                await sw.WriteLineAsync($"{Ident}#region Props");
                 foreach (var pd in stubDefinitions.Where(x => x is PropertyDefinition).Cast<PropertyDefinition>())
                 {
                     await WriteProp(sw, pd);
                 }
-                await sw.WriteLineAsync($"{Ident}// PROPS END");
+                await sw.WriteLineAsync($"{Ident}#endregion");
                 await sw.WriteLineAsync();
                 
-                await sw.WriteLineAsync($"{Ident}// METHODS START");
+                await sw.WriteLineAsync($"{Ident}#region Methods");
                 foreach (var md in stubDefinitions.Where(x => x is MethodDefinition).Cast<MethodDefinition>())
                 {
                     await WriteMethod(sw, md);
                 }
-                await sw.WriteLineAsync($"{Ident}// METHODS END");
+                await sw.WriteLineAsync($"{Ident}#endregion");
                 await sw.WriteLineAsync();
                 
-                await sw.WriteLineAsync($"{Ident}// OVERRIDDEN METHODS START");
+                await sw.WriteLineAsync($"{Ident}#region Overriden Methods");
                 foreach (var md in requiredMethods)
                 {
                     await WriteMethod(sw, md);
                 }
-                await sw.WriteLineAsync($"{Ident}// OVERRIDDEN METHODS END");
+                await sw.WriteLineAsync($"{Ident}#endregion");
                 await sw.WriteLineAsync();
                 
                 await sw.WriteLineAsync($"}} // class {stubType.Name}");
