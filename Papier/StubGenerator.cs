@@ -274,7 +274,15 @@ namespace Papier
         {
             if (!type.Namespace.Equals("System"))
             {
-                return "null";
+                if (type.IsValueType)
+                {
+                    // TODO: In theory, we could check for the constructors and invoke it, but we wait until someone complains
+                    return $"new {type.FullName}(); /* Value Type: best guess */";
+                }
+                else
+                {
+                    return "null";
+                }
             }
             else
             {
