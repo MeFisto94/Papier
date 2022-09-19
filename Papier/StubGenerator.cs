@@ -284,7 +284,7 @@ namespace Papier
                     "Boolean" => "false",
                     "Int32" => "0",
                     "UInt32" => "0",
-                    "String" => "",
+                    "String" => "\"\"",
                     _ => "null"
                 };
             }
