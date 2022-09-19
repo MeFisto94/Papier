@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Permissions;
+using System.Text;
 using System.Threading.Tasks;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -317,23 +318,34 @@ namespace Papier
         
         private static string GetModifiers(MethodDefinition md)
         {
-            var modifiers = "";
+            var modifiers = new StringBuilder();
+            
             if (md.IsPublic)
             {
-                modifiers += "public ";
+                modifiers.Append("public ");
             }
 
             if (md.IsPrivate)
             {
-                modifiers += "private ";
+                modifiers.Append("private ");
             }
 
             if (md.IsStatic)
             {
-                modifiers += "static ";
+                modifiers.Append("static ");
             }
 
-            return modifiers;
+            if (md.IsVirtual)
+            {
+                modifiers.Append("virtual ");
+            }
+
+            if (md.HasOverrides)
+            {
+                modifiers.Append("override ");
+            }
+            
+            return modifiers.ToString();
         }
         
         private static string GetModifiers(TypeDefinition md)
