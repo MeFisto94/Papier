@@ -183,37 +183,48 @@ namespace Papier
                         // can't stub it.
                         // TODO: If we skip based on that however, stubs would disappear (a call causes a stub, then it's removed, then it's added again)
                         // TODO: Shouldn't that filtering happen at a later place, so that methods are the true methods?
-                        if (!mr.HasParameters || mr.DeclaringType.Equals(type) || mr.DeclaringType.IsNested && mr.DeclaringType.DeclaringType.Equals(type))
+                        
+                        // Skip calls to self//"this" and base-classes
+                        if (mr.DeclaringType.Equals(type) || mr.DeclaringType.IsNested && mr.DeclaringType.DeclaringType.Equals(type))
                         {
                             continue;
                         }
-                            
-                        if (mr.Parameters.Select(p => p.ParameterType.Resolve())
-                            .Where(p => p != null)
-                            .Any(pt => type.Equals(pt) || stubbedTypes.Contains(pt)))
+                        
+                        var parameters = mr.Parameters
+                            .Select(p => p.ParameterType.Resolve())
+                            .Where(p => p != null);
+                        var returnType = mr.ReturnType.Resolve();
+
+                        var anyParams =
+                            parameters.Any(pt => type.Equals(pt) || stubbedTypes.Contains(pt))
+                            || type.Equals(returnType) || stubbedTypes.Contains(returnType);
+
+                        if (!anyParams)
                         {
-                            // Found a method call that contains a related type (type or any stub) as param.
-                            if (ins.OpCode == OpCodes.Callvirt)
-                            {
-                                // callvirt is a big problem for us. consider the following code:
-                                // class Car {} new Car().ToString();
-                                // This will translate to callvirt Object.ToString, with `this` somewhere on the stack.
-                                // We, however, need to Stub both Car, but also Object, or at least make the stubbed
-                                // methods virtual, so that the compiler emits a callvirt instruction again and doesn't
-                                // change to call.
-                                ResolveCallVirt(m, ins, mr, out var foundMethod, out var foundType);
-                                if (foundMethod != null)
-                                {
-                                    methods.Add(foundMethod);
-                                }
-                                else if (foundType != null)
-                                {
-                                    stubbingList.Add(foundType);
-                                } // else: in theory this should not happen, but we fail to find variables atm. 
-                            }
-                            
-                            methods.Add(mr.Resolve());
+                            continue;
                         }
+                        
+                        // Found a method call that contains a related type (type or any stub) as param (or return type)
+                        if (ins.OpCode == OpCodes.Callvirt)
+                        {
+                            // callvirt is a big problem for us. consider the following code:
+                            // class Car {} new Car().ToString();
+                            // This will translate to callvirt Object.ToString, with `this` somewhere on the stack.
+                            // We, however, need to Stub both Car, but also Object, or at least make the stubbed
+                            // methods virtual, so that the compiler emits a callvirt instruction again and doesn't
+                            // change to call.
+                            ResolveCallVirt(m, ins, mr, out var foundMethod, out var foundType);
+                            if (foundMethod != null)
+                            {
+                                methods.Add(foundMethod);
+                            }
+                            else if (foundType != null)
+                            {
+                                stubbingList.Add(foundType);
+                            } // else: in theory this should not happen, but we fail to find variables atm. 
+                        }
+
+                        methods.Add(mr.Resolve());
                     }
                 }
             }
@@ -240,7 +251,7 @@ namespace Papier
             
             if (local.VariableType != reference.DeclaringType)
             {
-                Logger.Info($"{reference.FullName} actually called on {local.VariableType} instead!");
+                Logger.Trace($"{reference.FullName} actually called on {local.VariableType} instead!");
                 foundType = local.VariableType.Resolve();
                 var meth = foundType.Methods.FirstOrDefault(m => m.Name == reference.Name && m.MethodReturnType == reference.MethodReturnType);
                 
