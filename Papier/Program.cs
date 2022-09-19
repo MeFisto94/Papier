@@ -84,10 +84,11 @@ namespace Papier
                                                         $"{string.Join(", ", assembly.Modules.Select(m => m.ToString()))}");
                             }
 
+                            var settings = new DecompilerSettings(LanguageVersion.CSharp7_3);
                             // Move into class: Decompiler or something.
                             var decompiler = new Decompiler(new CSharpDecompiler(assemblyPath, 
                                 new UniversalAssemblyResolver(assemblyPath, !o.IgnoreUnresolvedAssemblies, null),
-                                new DecompilerSettings(LanguageVersion.CSharp7)));
+                                settings));
                             
                             if (!apply)
                             {
