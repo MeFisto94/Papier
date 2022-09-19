@@ -14,7 +14,7 @@ namespace Papier
             IEnumerable<string> sourceSet, ref Dictionary<TypeDefinition, HashSet<IMemberDefinition>> stubbedTypes)
         {
             var hadStubs = false;
-            var sourceTypes = sourceSet.Select(source => ResolveType(assembly, source)).ToList();
+            var sourceTypes = sourceSet.Select(source => ResolveType(assembly, source)).ToHashSet();
             
             foreach (var type in sourceTypes)
             {
@@ -24,7 +24,7 @@ namespace Papier
                 // to be stubbed. This is however very unlikely, and also currently not detectable by FindTypesToStub
                 // (that only checks method bodies, but there are none in stubs).
                 
-                FindTypesToStub(type, ref methodsToStub, stubbedTypes.Keys, out var typesThatNeedStubbing);
+                FindTypesToStub(type, ref methodsToStub, stubbedTypes.Keys.ToHashSet(), out var typesThatNeedStubbing);
 
                 var typesToCheck = new HashSet<TypeDefinition>(typesThatNeedStubbing);
                 foreach (var md in methodsToStub)
@@ -32,6 +32,9 @@ namespace Papier
                     Logger.Trace($"STUB {md}, called from {type.Name}");
                     typesToCheck.Add(md.DeclaringType);
                 }
+                
+                // Do NOT Stub types that we have in code form.
+                typesToCheck.RemoveWhere(x => sourceTypes.Contains(x));
 
                 if (typesToCheck.Count == 0)
                 {
@@ -45,7 +48,7 @@ namespace Papier
         }
 
         private static void InnerFindStubs(IDictionary<TypeDefinition, HashSet<IMemberDefinition>> stubbedTypes, 
-            HashSet<TypeDefinition> typesToCheck, List<TypeDefinition> sourceTypes, TypeDefinition sourceType, 
+            HashSet<TypeDefinition> typesToCheck, HashSet<TypeDefinition> sourceTypes, TypeDefinition sourceType, 
             ref bool hadStubs)
         {
             // sourceType(s) are those causing stubbing, those that are patched by Papier.
@@ -160,7 +163,7 @@ namespace Papier
         /// <param name="stubbedTypes">(in) the types that are already stubbed.</param>
         /// <param name="typesThatNeedStubbing">Types that shall be additionally be stubbed, but don't need method stubbing</param>
         public static void FindTypesToStub(TypeDefinition type, ref HashSet<MethodDefinition> methods, 
-            IEnumerable<TypeDefinition> stubbedTypes, out IEnumerable<TypeDefinition> typesThatNeedStubbing)
+            HashSet<TypeDefinition> stubbedTypes, out IEnumerable<TypeDefinition> typesThatNeedStubbing)
         {
             var stubbingList = new List<TypeDefinition>();
             typesThatNeedStubbing = stubbingList;
