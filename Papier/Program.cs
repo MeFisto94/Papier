@@ -282,6 +282,11 @@ namespace Papier
                 col.DetectOutputRedirected = true;
                 col.UseDefaultRowHighlightingRules = true;
                 //col.EnableAnsiOutput = false;
+                col.Layout = "${longdate}|${level:uppercase=true}|${callsite}|${message} ${exception:format=tostring}";
+            }
+            else
+            {
+                ((ConsoleTarget)target).Layout = "${longdate}|${level:uppercase=true}|${callsite}|${message} ${exception:format=tostring}";
             }
 
             // Rules for mapping loggers to targets            
