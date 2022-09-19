@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Security.Permissions;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -121,14 +120,14 @@ namespace Papier
                 return "void";
             }
             
-            return 
+            var mangledName = 
                 (type.IsByReference ? "ref " : "") +
-                type.FullName
-                // TODO: this doesn't consider generic with multiple types. For now we just hard code a few...
-                .Replace("`1", "")
-                .Replace("`2", "")
-                .Replace("`3", "")
+                type.FullName;
+                
+            mangledName = Regex.Replace(mangledName, "`\\d+", "")
                 .Replace("&", "");
+
+            return mangledName;
         }
 
         private static async Task WriteField(TextWriter sw, FieldDefinition fd)
