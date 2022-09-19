@@ -85,6 +85,7 @@ namespace Papier
                             }
 
                             var settings = new DecompilerSettings(LanguageVersion.CSharp7_3);
+                            settings.NamedArguments = false; // they break patches when params are renamed
                             // Move into class: Decompiler or something.
                             var decompiler = new Decompiler(new CSharpDecompiler(assemblyPath, 
                                 new UniversalAssemblyResolver(assemblyPath, !o.IgnoreUnresolvedAssemblies, null),
