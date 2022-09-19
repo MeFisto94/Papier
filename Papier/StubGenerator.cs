@@ -120,10 +120,7 @@ namespace Papier
                 return "void";
             }
             
-            var mangledName = 
-                (type.IsByReference ? "ref " : "") +
-                type.FullName;
-                
+            var mangledName = type.FullName;
             mangledName = Regex.Replace(mangledName, "`\\d+", "")
                 .Replace("&", "");
 
@@ -365,20 +362,19 @@ namespace Papier
 
         private static string GetModifiers(ParameterDefinition pd)
         {
-            var modifiers = "";
+            var modifiers = new StringBuilder();
             if (pd.IsIn)
             {
-                modifiers += "in ";
-            }
-
-            if (pd.IsOut)
+                modifiers.Append("in ");
+            } else if (pd.IsOut)
             {
-                modifiers += "out ";
+                modifiers.Append("out ");
+            } else if (pd.ParameterType.IsByReference)
+            {
+                modifiers.Append("ref ");
             }
             
-            // TODO: Ref? What is Lcid
-
-            return modifiers;
+            return modifiers.ToString();
         }
 
         /// <summary>
