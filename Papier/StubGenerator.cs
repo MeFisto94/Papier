@@ -184,7 +184,18 @@ namespace Papier
             {
                 foreach (var pd in md.Parameters)
                 {
-                    parms += $"{GetModifiers(pd)}{NamespacedType(pd.ParameterType)} {pd.Name}, ";
+                    var defaultValue = "";
+                    if (pd.IsOptional && pd.HasDefault && pd.HasConstant)
+                    {
+                        var constant = GetCodeRepresentation(pd.Constant);
+                        if (pd.ParameterType.Resolve().IsEnum)
+                        {
+                            // For enums we need to cast
+                            constant = $"({pd.ParameterType.FullName}) {constant}";
+                        }
+                        defaultValue = $" = {constant}";
+                    }
+                    parms += $"{GetModifiers(pd)}{NamespacedType(pd.ParameterType)} {pd.Name}{defaultValue}, ";
                 }
 
                 // This condition is in theory redundant...
@@ -310,6 +321,25 @@ namespace Papier
                     "String" => "\"\"",
                     _ => "null"
                 };
+            }
+        }
+
+        private static string GetCodeRepresentation(object obj)
+        {
+            if (obj is bool b)
+            {
+                return b ? "true" : "false";
+            }
+            else if (obj is float f)
+            {
+                return $"{f}f";
+            } else if (obj is double d)
+            {
+                return $"{d}d";
+            }
+            else
+            {
+                return obj.ToString();
             }
         }
 
