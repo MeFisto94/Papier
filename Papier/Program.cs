@@ -307,15 +307,20 @@ namespace Papier
             var stubBuilder = new StubBuilder(stubPath, assembly);
             stubBuilder.Clean();
             
+            // Here, we ignore files that _we_ added (i.e. they are not part of the base assembly and thus don't need
+            // stubs (and especially, their type resolution would fail, causing an error))
             var sourceSet = new HashSet<string>(patchedFiles);
-            var stubTypes = stubBuilder.CreateStubs(sourceSet);
+            var sourceSetMinusAddedFiles = sourceSet
+                .Where(x => assembly.MainModule.GetType(x) != null)
+                .ToHashSet();
+            var stubTypes = stubBuilder.CreateStubs(sourceSetMinusAddedFiles);
             
             // Save names, before they get changed in the stripping step
             var stubTypeNames = stubTypes.Keys.Select(x => x.Name).ToList();
             stubTypeNames.Add("PapierStub"); // The type that annotates every stub also needs to be part of the src
             
             // TODO: In the following, at least modulePath refers to the assembly, not the module.
-            var asmBuilder = new AssemblyBuilder(sourceSet, Path.Combine("work", "bin"), moduleName);
+            var asmBuilder = new AssemblyBuilder(sourceSetMinusAddedFiles, Path.Combine("work", "bin"), moduleName);
             asmBuilder.Clean();
             asmBuilder.StripAssembly(stubTypes.Keys, assembly);
 
@@ -336,23 +341,25 @@ namespace Papier
                 return false;
             }
 
-            var assemblyMerger = new ILRepackAssemblyMerger(assemblyResolver, sourceSet, asmBuilder.OutputPath, moduleName, 
-                o.ForceReplaceAssembly, o.Verbose);
+            var assemblyMerger = new ILRepackAssemblyMerger(assemblyResolver, sourceSetMinusAddedFiles,
+                asmBuilder.OutputPath, moduleName, o.ForceReplaceAssembly, o.Verbose);
             //Logger.Info($"Merging the compilation with the original assembly into {moduleName}-compiled.dll");
             assemblyMerger.MergeAssemblies(assemblyPath);
             return true;
         }
 
-        private static List<SyntaxTree> GenerateModuleSourceSet(HashSet<string> sourceSet, string modulePath)
+        private static List<SyntaxTree> GenerateModuleSourceSet(IEnumerable<string> sourceSet, string modulePath)
         {
-            var sourceFiles = sourceSet.Select(x =>
+            return sourceSet
+                .Select(x => x.Replace('.', Path.DirectorySeparatorChar))
+                .Select(x =>
             {
                 var st = SourceText.From(File.Open(Path.Combine(modulePath, $"{x}.cs"),
                     FileMode.Open, FileAccess.Read, FileShare.Read));
                 return SyntaxFactory.ParseSyntaxTree(st,
                     new CSharpParseOptions(Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8), $"{x}.cs");
-            }).ToList();
-            return sourceFiles;
+            })
+            .ToList();
         }
 
         private static void AddStubsToCompilation(IEnumerable<string> stubTypes, string stubPath, List<SyntaxTree> sourceFiles)
