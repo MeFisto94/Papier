@@ -250,9 +250,24 @@ namespace Papier
             }
             else
             {
+                var outParams = md.Parameters.Where(x => x.IsOut).ToList();
+                var outAssignments = new StringBuilder();
+                
+                foreach (var param in outParams)
+                {
+                    var paramType = param.ParameterType;
+                    if (param.ParameterType is ByReferenceType)
+                    {
+                        // TODO: We could use this resolution for types everywhere
+                        paramType = paramType.GetElementType();
+                    }
+                    
+                    outAssignments.Append($"{param.Name} = {GetDefaultReturnValueForType(paramType)}; ");
+                }
+                
                 var returnStatement = GetReturnStatement(md.ReturnType);
                 await sw.WriteLineAsync(
-                    $"{Ident}{GetModifiers(md)}{NamespacedType(md.ReturnType)} {md.Name}({parms}) {{ {returnStatement}}}");
+                    $"{Ident}{GetModifiers(md)}{NamespacedType(md.ReturnType)} {md.Name}({parms}) {{ {outAssignments}{returnStatement}}}");
             }
         }
 
