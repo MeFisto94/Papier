@@ -57,6 +57,9 @@ namespace Papier
         {
             using (var repo = GetOrCreateRepository())
             {
+                Logger.Info("Creating .gitignore file");
+                File.WriteAllLines(Path.Combine(RepositoryPath, ".gitignore"), new []{ ".idea/", 
+                    "obj/", "*.csproj"});
                 Logger.Info("Commiting the initial decompilation");
                 repo.Config.Set("core.autocrlf", true); // Windows is fun
                 Commands.Stage(repo, "*"); // TODO: Does this also work for subdirectories?
@@ -138,8 +141,22 @@ namespace Papier
 
         public void CleanPatches()
         {
-            Program.DeleteDirectory(PatchPath);
-            Directory.CreateDirectory(PatchPath);
+            if (!Directory.Exists(PatchPath))
+            {
+                Directory.CreateDirectory(PatchPath);
+                return;
+            }
+            
+            var files = Directory.GetFiles(PatchPath);
+
+            foreach (var file in files)
+            {
+                if (file.EndsWith(".patch"))
+                {
+                    File.SetAttributes(file, FileAttributes.Normal);
+                    File.Delete(file);
+                }
+            }
         }
         
         public List<string> GatherPatchedFiles()
