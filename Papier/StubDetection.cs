@@ -7,6 +7,7 @@ using NLog;
 
 namespace Papier
 {
+    // TODO: Clarify FindStubContents and FindTypesToStub
     public static class StubDetection
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger(); 
@@ -115,7 +116,7 @@ namespace Papier
                         if (ins.OpCode == OpCodes.Call || ins.OpCode == OpCodes.Calli || ins.OpCode == OpCodes.Callvirt || ins.OpCode == OpCodes.Newobj)
                         {
                             var mr = (MethodReference)ins.Operand;
-                            if (stubType.Equals(mr.DeclaringType.Resolve()))
+                            if (stubType.Equals(mr.DeclaringType.Resolve())) // TODO: 
                             {
                                 var meth = mr.Resolve();
                                 
@@ -175,7 +176,18 @@ namespace Papier
             
             foreach (var m in type.Methods.Where(x => x.HasBody))
             {
-                foreach (var ins in m.Body.Instructions)
+                var method = m;
+                    
+                var attribute = m.CustomAttributes.FirstOrDefault(x =>
+                    x.AttributeType.FullName == "System.Runtime.CompilerServices.IteratorStateMachineAttribute");
+                if (attribute != null)
+                {
+                    // For yield return methods, we analyze the created inner class' move next instead.
+                    var td = (TypeDefinition)attribute.ConstructorArguments[0].Value;
+                    method = td.Methods.First(x => x.Name == "MoveNext");
+                }
+                
+                foreach (var ins in method.Body.Instructions)
                 {
                     if (ins.OpCode == OpCodes.Call || ins.OpCode == OpCodes.Calli || ins.OpCode == OpCodes.Callvirt || 
                         ins.OpCode == OpCodes.Newobj)
@@ -216,7 +228,7 @@ namespace Papier
                             // We, however, need to Stub both Car, but also Object, or at least make the stubbed
                             // methods virtual, so that the compiler emits a callvirt instruction again and doesn't
                             // change to call.
-                            ResolveCallVirt(m, ins, mr, out var foundMethod, out var foundType);
+                            ResolveCallVirt(method, ins, mr, out var foundMethod, out var foundType);
                             if (foundMethod != null)
                             {
                                 methods.Add(foundMethod);
