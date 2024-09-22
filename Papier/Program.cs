@@ -49,8 +49,11 @@ namespace Papier
                             Console.WriteLine("Using Assembly-CSharp as the wildcard");
                         }
                         
-                        var assemblyStringList = Directory.EnumerateFiles(buildData, $"{o.AssemblyWildcard}.dll")
-                            .Select(Path.GetFileName).ToList();
+                        var assemblyStringList = Directory.EnumerateFiles(buildData, $"{o.AssemblyWildcard}.*")
+                            .Select(Path.GetFileName)
+                            .Where(x => x != null)
+                            .Where(x => x.EndsWith(".dll") || x.EndsWith(".exe"))
+                            .ToList();
 
                         if (assemblyStringList.Count == 0)
                         {
