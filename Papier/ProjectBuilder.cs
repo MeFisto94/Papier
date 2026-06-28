@@ -48,7 +48,8 @@ namespace Papier
             group.AddProperty("OutputType", "Library");
             group.AddProperty("OutputPath", "bin\\");
             group.AddProperty("AssemblyName", ProjectName);
-            group.AddProperty("TargetFrameworkVersion", "v4.7.1"); // ??
+            group.AddProperty("TargetFrameworkVersion", "v4.7.2"); // ??
+            group.AddProperty("AllowUnsafeBlocks", "true"); // TODO: Maybe we can find out if there are unsafe instructions, but it doesn't hurt to enable them too eagerly.
             group.AddProperty("LangVersion", "8"); // ??
                 
             var compileSet = root.AddItemGroup();
