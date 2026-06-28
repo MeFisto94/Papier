@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -56,18 +57,33 @@ namespace Papier
 
         /// <summary>
         /// Decompiles every type of the supplied enumerable, filtered by filter, if non-null.
+        /// Note: If decompilation fails, the file is skipped.
         /// </summary>
         /// <param name="types"></param>
         /// <param name="outputSourceDirectory"></param>
+        /// <param name="failedDecompilations"></param>
         /// <param name="filter"></param>
-        public void DecompileTypes(IEnumerable<TypeDefinition> types, string outputSourceDirectory, List<string>? filter = null)
+        public void DecompileTypes(IEnumerable<TypeDefinition> types, string outputSourceDirectory, out List<TypeDefinition> failedDecompilations, List<string>? filter = null)
         {
+            var failed = new List<TypeDefinition>();
             var tasks = types
                 .Where(x => filter?.Contains(x.Name) ?? true)
-                .Select(x => DecompileClass(x, outputSourceDirectory))
+                .Select(async x =>
+                {
+                    try
+                    {
+                        await DecompileClass(x, outputSourceDirectory);
+                    }
+                    catch (Exception ex)
+                    {
+                        failed.Add(x);
+                        Logger.Error(ex, "Failed to decompile file {}", x.Name);
+                    }
+                })
                 .ToArray();
             
             Task.WaitAll(tasks);
+            failedDecompilations = failed;
         }
     }
 }

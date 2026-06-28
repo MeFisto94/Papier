@@ -99,7 +99,7 @@ namespace Papier
                                 var slnPath = Path.Combine("work", "sln", $"{assemblyNameWithoutExt}-Full");
                                 Directory.CreateDirectory(slnPath);
                                 
-                                decompiler.DecompileTypes(assembly.Modules.SelectMany(x => x.Types), slnPath);
+                                decompiler.DecompileTypes(assembly.Modules.SelectMany(x => x.Types), slnPath, out var failedDecompilations);
                                 var projB = new ProjectBuilder
                                 {
                                     ProjectFolder = Path.Combine("work", "sln", $"{assemblyNameWithoutExt}-Full"),
@@ -126,7 +126,13 @@ namespace Papier
                             
                             // TODO: MainModule instead of Modules? Here we could easily support multiple modules...
                             decompiler.DecompileTypes(assembly.Modules.SelectMany(x => x.Types), 
-                                patchRepo.RepositoryPath, patchedFiles);
+                                patchRepo.RepositoryPath, out var failed, patchedFiles);
+
+                            if (failed.Count > 0)
+                            {
+                                Console.Error.WriteLine("Failed to decompile patched files, won't be able to apply all patches cleanly\nThis is an upstream bug!");
+                                Environment.Exit(-1);
+                            }
 
                             // TODO: patchRepo.AddGitIgnore(); -- csproj files.
                             patchRepo.InitialCommit();
