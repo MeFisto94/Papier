@@ -4,7 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using CommandLine;
-using deltaq.BsDiff;
+using DeltaQ.BsDiff;
+using DeltaQ.SuffixSorting.LibDivSufSort;
 using ICSharpCode.Decompiler;
 using ICSharpCode.Decompiler.CSharp;
 using ICSharpCode.Decompiler.Metadata;
@@ -256,7 +257,7 @@ namespace Papier
                                     FileMode.Create, FileAccess.Write, FileShare.Read))
                                 {
                                     Console.WriteLine($"Creating bsdiff file for {moduleName}");
-                                    BsDiff.Create(baseArr, compiledArr, patchOutputStream);                                
+                                    Diff.Create(baseArr, compiledArr, patchOutputStream, new LibDivSufSort());
                                 }
                             });
                         }

@@ -1,12 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
+        <!-- ILRepack.Lib only ships a .NET Framework asset; consumed via the compat shim (NU1701). -->
+        <NoWarn>$(NoWarn);NU1701</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="ILRepack.Lib" Version="2.0.18" />
-      <PackageReference Include="Mono.Cecil" Version="0.11.4" />
+      <PackageReference Include="ILRepack.Lib" Version="2.0.45" />
+      <PackageReference Include="Mono.Cecil" Version="0.11.6" />
     </ItemGroup>
 
 </Project>

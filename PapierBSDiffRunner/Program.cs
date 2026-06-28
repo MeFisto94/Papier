@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using deltaq.BsDiff;
+using DeltaQ.BsDiff;
 
 namespace PapierBSDiffRunner
 {
@@ -17,7 +17,7 @@ namespace PapierBSDiffRunner
                     using (var output = File.Open($"{dll}-patched.dll", FileMode.Create, FileAccess.Write,
                         FileShare.Read))
                     {
-                        BsPatch.Apply(inputStream, (offset, length) =>
+                        Patch.Apply(inputStream, (offset, length) =>
                             {
                                 var stream = File.Open($"{dll}-bsdiff.dll", FileMode.Open, FileAccess.Read,
                                     FileShare.Read);
